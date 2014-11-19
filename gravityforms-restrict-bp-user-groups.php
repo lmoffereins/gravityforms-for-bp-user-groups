@@ -148,7 +148,7 @@ final class GravityForms_Restrict_BP_User_Groups {
 	 *
 	 * @since 1.0.0
 	 * 
-	 * @param array|array $form Form object or form ID
+	 * @param array|int $form Form object or form ID
 	 * @param string $meta_key Form meta key
 	 * @return mixed Form setting's value or NULL when not found
 	 */
@@ -170,7 +170,7 @@ final class GravityForms_Restrict_BP_User_Groups {
 	 *
 	 * @since 1.0.0
 	 * 
-	 * @param array|array $form Form object or form ID
+	 * @param array|int $form Form object or form ID
 	 * @return array Form's user groups
 	 */
 	public function get_form_user_groups( $form ) {
@@ -194,7 +194,7 @@ final class GravityForms_Restrict_BP_User_Groups {
 	 * @uses groups_get_groups()
 	 * @uses apply_filters() Calls 'gravityforms_restrict_bp_user_groups_is_user_form_member'
 	 * 
-	 * @param array|array $form Form object or form ID
+	 * @param array|int $form Form object or form ID
 	 * @param int $user_id Optional. User ID. Defaults to current user ID
 	 * @return bool The user can view the form
 	 */
