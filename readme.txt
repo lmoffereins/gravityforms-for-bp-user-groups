@@ -7,7 +7,7 @@ Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Restrict forms in Gravity Forms to BuddyPress user groups.
+Restrict per form access in Gravity Forms to BuddyPress user groups.
 
 == Description ==
 

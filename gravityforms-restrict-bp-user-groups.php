@@ -5,13 +5,11 @@
  * 
  * @package Gravity Forms Restrict BP User Groups
  * @subpackage Main
- *
- * @todo In form settings display selectable groups hierarchically
  */
 
 /**
  * Plugin Name:       Gravity Forms Restrict BP User Groups
- * Description:       Restrict forms in Gravity Forms to BuddyPress user groups.
+ * Description:       Restrict per form access in Gravity Forms to BuddyPress user groups.
  * Plugin URI:        https://github.com/lmoffereins/gravityforms-restrict-bp-user-groups/
  * Version:           1.0.0
  * Author:            Laurens Offereins
@@ -150,18 +148,16 @@ final class GravityForms_Restrict_BP_User_Groups {
 	 *
 	 * @since 1.0.0
 	 * 
-	 * @param int|array $form_id Form ID or form object
+	 * @param array|array $form Form object or form ID
 	 * @param string $meta_key Form meta key
 	 * @return mixed Form setting's value or NULL when not found
 	 */
-	public function get_form_setting( $form_id, $meta_key ) {
+	public function get_form_setting( $form, $meta_key ) {
 
 		// Get form metadata
-		if ( ! is_array( $form_id ) && is_numeric( $form_id ) ) {
-			$form = RGFormsModel::get_form_meta( (int) $form_id );
-		} elseif ( is_array( $form_id ) ) {
-			$form = $form_id;
-		} else {
+		if ( ! is_array( $form ) && is_numeric( $form ) ) {
+			$form = RGFormsModel::get_form_meta( (int) $form );
+		} elseif ( ! is_array( $form ) ) {
 			return null;
 		}
 
@@ -174,11 +170,11 @@ final class GravityForms_Restrict_BP_User_Groups {
 	 *
 	 * @since 1.0.0
 	 * 
-	 * @param int|array $form_id Form ID or form object
+	 * @param array|array $form Form object or form ID
 	 * @return array Form's user groups
 	 */
-	public function get_form_user_groups( $form_id ) {
-		$groups = $this->get_form_setting( $form_id, $this->groups_meta_key );
+	public function get_form_user_groups( $form ) {
+		$groups = $this->get_form_setting( $form, $this->groups_meta_key );
 
 		// Default to empty array
 		if ( empty( $groups ) )
@@ -198,11 +194,11 @@ final class GravityForms_Restrict_BP_User_Groups {
 	 * @uses groups_get_groups()
 	 * @uses apply_filters() Calls 'gravityforms_restrict_bp_user_groups_is_user_form_member'
 	 * 
-	 * @param int $form_id Form ID
+	 * @param array|array $form Form object or form ID
 	 * @param int $user_id Optional. User ID. Defaults to current user ID
 	 * @return bool The user can view the form
 	 */
-	public function is_user_form_member( $form_id, $user_id = 0 ) {
+	public function is_user_form_member( $form, $user_id = 0 ) {
 		global $wpdb;
 
 		// Default to current user
@@ -211,7 +207,7 @@ final class GravityForms_Restrict_BP_User_Groups {
 		}
 
 		// Get the form's assigned user groups
-		$group_ids = $this->get_form_user_groups( $form_id );
+		$group_ids = $this->get_form_user_groups( $form );
 
 		// Account for group hierarchy
 		if ( ! empty( $group_ids ) && $this->bp_group_hierarchy ) {
@@ -240,7 +236,7 @@ final class GravityForms_Restrict_BP_User_Groups {
 			'populate_extras' => false,
 		) );
 
-		return (bool) apply_filters( 'gravityforms_restrict_bp_user_groups_is_user_form_member', ! empty( $groups['groups'] ), $form_id, $user_id );
+		return (bool) apply_filters( 'gravityforms_restrict_bp_user_groups_is_user_form_member', ! empty( $groups['groups'] ), $form, $user_id );
 	}
 
 	/**
@@ -329,6 +325,8 @@ final class GravityForms_Restrict_BP_User_Groups {
 	 * Return the user group selection HTML
 	 *
 	 * @since 1.0.0
+	 *
+	 * @todo Display selectable groups hierarchically
 	 *
 	 * @uses groups_get_groups()
 	 * 
