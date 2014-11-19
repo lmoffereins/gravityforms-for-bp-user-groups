@@ -98,8 +98,9 @@ final class GravityForms_Restrict_BP_User_Groups {
 		add_filter( 'gform_get_form_filter', array( $this, 'handle_form_display' ), 90, 2 );
 
 		// Form settings
-		add_filter( 'gform_form_settings',          array( $this, 'register_form_setting' ), 20, 2 );
-		add_filter( 'gform_pre_form_settings_save', array( $this, 'update_form_setting'   )        );
+		add_filter( 'gform_form_settings',                                 array( $this, 'register_form_setting'      ), 20, 2 );
+		add_filter( 'gform_pre_form_settings_save',                        array( $this, 'update_form_setting'        )        );
+		add_action( 'gravityforms_restrict_bp_user_groups_child_settings', array( $this, 'select_user_groups_setting' )        );
 	}
 
 	/** Public methods **************************************************/
@@ -255,26 +256,24 @@ final class GravityForms_Restrict_BP_User_Groups {
 	/** Admin Settings **************************************************/
 
 	/**
-	 * Display the plugin form setting's field
+	 * Register the plugin form settings fields
 	 *
 	 * @since 1.0.0
 	 *
 	 * @uses GravityForms_Restrict_BP_User_Groups::get_form_setting()
-	 * @uses GravityForms_Restrict_BP_User_Groups::get_form_user_groups()
-	 * @uses GravityForms_Restrict_BP_User_Groups::display_group_selection()
 	 * @uses GravityForms_Restrict_BP_User_Groups::get_gf_translation()
 	 * 
-	 * @param array $settings Form settings sections and their fields
-	 * @param int $form Form object
+	 * @param array $settings Form settings sections with their fields
+	 * @param array $form Form object
+	 * @return array Form settings
 	 */
 	public function register_form_setting( $settings, $form ) {
 
 		// Define local variable(s)
-		$checked  = $this->get_form_setting( $form, $this->main_meta_key );
-		$selected = $this->get_form_user_groups( $form );
-		$style    = ! $checked ? 'style="display:none;"' : '';
+		$checked = $this->get_form_setting( $form, $this->main_meta_key );
+		$style   = ! $checked ? 'style="display:none;"' : '';
 
-		// Start output buffer and setup our setting's field
+		// Start output buffer and setup our settings fields markup
 		ob_start(); ?>
 
 		<tr>
@@ -299,12 +298,10 @@ final class GravityForms_Restrict_BP_User_Groups {
 			<td colspan="2" class="gf_sub_settings_cell">
 				<div class="gf_animate_sub_settings">
 					<table>
-						<tr>
 
-							<th><?php _e( 'Groups', 'gravityforms-restrict-bp-user-groups' ); ?></th>
-							<td><?php echo $this->display_group_selection( $selected ); ?></td>
+						<?php // Provide hook for dynamic child settings ?>
+						<?php do_action( 'gravityforms_restrict_bp_user_groups_child_settings', $form ); ?>
 
-						</tr>
 					</table>
 				</div><!-- .gf_animate_sub_settings -->
 			</td><!-- .gf_sub_settings_cell -->
@@ -319,6 +316,25 @@ final class GravityForms_Restrict_BP_User_Groups {
 		$settings[ $section ][ 'restrict_bp_user_groups' ] = ob_get_clean();
 
 		return $settings;
+	}
+
+	/**
+	 * Display the settings field to select user groups
+	 *
+	 * @since 1.0.1
+	 *
+	 * @uses GravityForms_Restrict_BP_User_Groups::display_group_selection()
+	 * @uses GravityForms_Restrict_BP_User_Groups::get_form_user_groups()
+	 * @param array $form Form object
+	 */
+	public function select_user_groups_setting( $form ) { ?>
+
+		<tr>
+			<th><?php _e( 'Groups', 'gravityforms-restrict-bp-user-groups' ); ?></th>
+			<td><?php echo $this->display_group_selection( $this->get_form_user_groups( $form ) ); ?></td>
+		</tr>
+
+		<?php
 	}
 
 	/**
