@@ -111,6 +111,9 @@ final class GravityForms_For_BP_User_Groups {
 		add_filter( 'gform_pre_form_settings_save',                   array( $this, 'update_form_setting'        )        );
 		add_action( 'gravityforms_for_bp_user_groups_child_settings', array( $this, 'hide_feedback_setting'      )        );
 		add_action( 'gravityforms_for_bp_user_groups_child_settings', array( $this, 'select_user_groups_setting' )        );
+
+		// Tooltips
+		add_filter( 'gform_tooltips', array( $this, 'tooltips' ) );
 	}
 
 	/** Public methods **************************************************/
@@ -312,7 +315,7 @@ final class GravityForms_For_BP_User_Groups {
 		ob_start(); ?>
 
 		<tr>
-			<th><?php _e( 'BP user groups', 'gravityforms-for-bp-user-groups' ); ?></th>
+			<th><?php _e( 'BP user groups', 'gravityforms-for-bp-user-groups' ); ?> <?php gform_tooltip( 'for_bp_user_groups' ); ?></th>
 			<td>
 				<input type="checkbox" name="for-bp-user-groups" id="gform_for_bp_user_groups" value="1" <?php checked( $checked ); ?> onclick="ToggleForUserGroups();" />
 				<label for="gform_for_bp_user_groups"><?php _e( 'Restrict this form to the selected BuddyPress user groups', 'gravityforms-for-bp-user-groups' ); ?></label>
@@ -382,7 +385,7 @@ final class GravityForms_For_BP_User_Groups {
 	public function hide_feedback_setting( $form ) { ?>
 
 		<tr>
-			<th><?php _e( 'Hide feedback', 'gravityforms-for-bp-user-groups' ); ?></th>
+			<th><?php _e( 'Hide feedback', 'gravityforms-for-bp-user-groups' ); ?> <?php gform_tooltip( 'for_bp_user_groups_hide_feedback' ); ?></th>
 			<td>
 				<input type="checkbox" name="for-bp-user-groups-hide-feedback" id="gform_for_bp_user_groups_hide_feedback" value="1" <?php checked( $this->get_form_meta( $form, $this->feedback_meta_key ) ); ?> />
 				<label for="gform_for_bp_user_groups_hide_feedback"><?php _e( "Don't show any feedback message when hiding the form", 'gravityforms-for-bp-user-groups' ); ?></label>
@@ -460,6 +463,32 @@ final class GravityForms_For_BP_User_Groups {
 		$html = ob_get_clean();
 
 		return apply_filters( 'gravityforms_for_bp_user_groups_display_group_selection', $html, $selected, $type );
+	}
+
+	/** Tooltips ***********************************************************/
+
+	/**
+	 * Append our custom tooltips to GF's tooltip collection
+	 *
+	 * @since 1.1.0
+	 *
+	 * @link gravityforms/tooltips.php
+	 * 
+	 * @param array $tips Tooltips
+	 * @return array Tooltips
+	 */
+	public function tooltips( $tips ) {
+
+		// Each tooltip consists of an <h6> header with a short description after it
+		$format = '<h6>%s</h6>%s';
+
+		// Append our tooltips
+		$tips = array_merge( $tips, array(
+			'for_bp_user_groups'               => sprintf( $format, __( 'BP User Groups', 'gravityforms-for-bp-user-groups' ), __( 'Check this option and select any user groups to only show the form to those user groups.', 'gravityforms-for-bp-user-groups' ) ),
+			'for_bp_user_groups_hide_feedback' => sprintf( $format, __( 'Hide Feedback',  'gravityforms-for-bp-user-groups' ), __( 'Check this option to hide the you-are-not-allowed-to-view feedback message.',              'gravityforms-for-bp-user-groups' ) ),
+		) );
+
+		return $tips;
 	}
 }
 
