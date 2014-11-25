@@ -1,34 +1,34 @@
 <?php
 
 /**
- * The Gravity Forms Restrict BP User Groups Plugin
+ * The Gravity Forms For BP User Groups Plugin
  * 
- * @package Gravity Forms Restrict BP User Groups
+ * @package Gravity Forms For BP User Groups
  * @subpackage Main
  */
 
 /**
- * Plugin Name:       Gravity Forms Restrict BP User Groups
+ * Plugin Name:       Gravity Forms For BP User Groups
  * Description:       Restrict per form access in Gravity Forms to BuddyPress user groups.
- * Plugin URI:        https://github.com/lmoffereins/gravityforms-restrict-bp-user-groups/
+ * Plugin URI:        https://github.com/lmoffereins/gravityforms-for-bp-user-groups/
  * Version:           1.0.0
  * Author:            Laurens Offereins
  * Author URI:        https://github.com/lmoffereins/
- * Text Domain:       gravityforms-restrict-bp-user-groups
+ * Text Domain:       gravityforms-for-bp-user-groups
  * Domain Path:       /languages/
- * GitHub Plugin URI: lmoffereins/gravityforms-restrict-bp-user-groups
+ * GitHub Plugin URI: lmoffereins/gravityforms-for-bp-user-groups
  */
 
 // Exit if accessed directly
 defined( 'ABSPATH' ) || exit;
 
-if ( ! class_exists( 'GravityForms_Restrict_BP_User_Groups' ) ) :
+if ( ! class_exists( 'GravityForms_For_BP_User_Groups' ) ) :
 /**
  * The main plugin class
  *
  * @since 1.0.0
  */
-final class GravityForms_Restrict_BP_User_Groups {
+final class GravityForms_For_BP_User_Groups {
 
 	/**
 	 * The plugin setting's main meta key
@@ -36,7 +36,7 @@ final class GravityForms_Restrict_BP_User_Groups {
 	 * @since 1.0.0
 	 * @var string
 	 */
-	private $main_meta_key = 'restrictByUserGroups';
+	private $main_meta_key = 'forBPUserGroups';
 
 	/**
 	 * The plugin setting's groups meta key
@@ -44,16 +44,16 @@ final class GravityForms_Restrict_BP_User_Groups {
 	 * @since 1.0.0
 	 * @var string
 	 */
-	private $groups_meta_key = 'restrictedUserGroups';
+	private $groups_meta_key = 'selectedBPUserGroups';
 
 	/**
 	 * Setup and return the singleton pattern
 	 *
 	 * @since 1.0.0
 	 *
-	 * @uses GravityForms_Restrict_BP_User_Groups::setup_globals()
-	 * @uses GravityForms_Restrict_BP_User_Groups::setup_actions()
-	 * @return The single GravityForms_Restrict_BP_User_Groups
+	 * @uses GravityForms_For_BP_User_Groups::setup_globals()
+	 * @uses GravityForms_For_BP_User_Groups::setup_actions()
+	 * @return The single GravityForms_For_BP_User_Groups
 	 */
 	public static function instance() {
 
@@ -61,7 +61,7 @@ final class GravityForms_Restrict_BP_User_Groups {
 		static $instance = null;
 
 		if ( null === $instance ) {
-			$instance = new GravityForms_Restrict_BP_User_Groups;
+			$instance = new GravityForms_For_BP_User_Groups;
 			$instance->setup_globals();
 			$instance->setup_actions();
 		}
@@ -98,9 +98,9 @@ final class GravityForms_Restrict_BP_User_Groups {
 		add_filter( 'gform_get_form_filter', array( $this, 'handle_form_display' ), 90, 2 );
 
 		// Form settings
-		add_filter( 'gform_form_settings',                                 array( $this, 'register_form_setting'      ), 20, 2 );
-		add_filter( 'gform_pre_form_settings_save',                        array( $this, 'update_form_setting'        )        );
-		add_action( 'gravityforms_restrict_bp_user_groups_child_settings', array( $this, 'select_user_groups_setting' )        );
+		add_filter( 'gform_form_settings',                            array( $this, 'register_form_setting'      ), 20, 2 );
+		add_filter( 'gform_pre_form_settings_save',                   array( $this, 'update_form_setting'        )        );
+		add_action( 'gravityforms_for_bp_user_groups_child_settings', array( $this, 'select_user_groups_setting' )        );
 	}
 
 	/** Public methods **************************************************/
@@ -133,7 +133,7 @@ final class GravityForms_Restrict_BP_User_Groups {
 	 * @since 1.0.0
 	 *
 	 * @uses get_current_user_id()
-	 * @uses apply_filters() Calls 'gf_restrict_bp_user_groups_handle_form_display'
+	 * @uses apply_filters() Calls 'gf_for_bp_user_groups_handle_form_display'
 	 * 
 	 * @param string $form_string The form response HTML
 	 * @param array $form Form meta data
@@ -144,7 +144,7 @@ final class GravityForms_Restrict_BP_User_Groups {
 		// Get the current user
 		$user_id = get_current_user_id();
 
-		// Form is marked to restrict user groups
+		// Form is marked for selected user groups
 		if ( ! empty( $form ) && $this->get_form_meta( $form, $this->main_meta_key ) && 0 < count( $this->get_form_user_groups( $form ) ) ) {
 
 			// User is not logged in
@@ -159,7 +159,7 @@ final class GravityForms_Restrict_BP_User_Groups {
 
 			// User is not member of this form's user groups. Hide the form
 			} elseif ( ! $this->is_user_form_member( $form['id'], $user_id ) ) {
-				$form_string = '<p>' . __( 'Sorry. You are not allowed to view this form.', 'gravityforms-restrict-bp-user-groups' ) . '</p>';
+				$form_string = '<p>' . __( 'Sorry. You are not allowed to view this form.', 'gravityforms-for-bp-user-groups' ) . '</p>';
 			}
 		}
 
@@ -190,10 +190,10 @@ final class GravityForms_Restrict_BP_User_Groups {
 	 * @since 1.0.0
 	 *
 	 * @uses get_current_user_id()
-	 * @uses GravityForms_Restrict_BP_User_Groups::get_form_user_groups()
+	 * @uses GravityForms_For_BP_User_Groups::get_form_user_groups()
 	 * @uses BP_Groups_Hierarchy::has_children()
 	 * @uses groups_get_groups()
-	 * @uses apply_filters() Calls 'gravityforms_restrict_bp_user_groups_is_user_form_member'
+	 * @uses apply_filters() Calls 'gravityforms_for_bp_user_groups_is_user_form_member'
 	 * 
 	 * @param array|int $form Form object or form ID
 	 * @param int $user_id Optional. User ID. Defaults to current user ID
@@ -237,7 +237,7 @@ final class GravityForms_Restrict_BP_User_Groups {
 			'populate_extras' => false,
 		) );
 
-		return (bool) apply_filters( 'gravityforms_restrict_bp_user_groups_is_user_form_member', ! empty( $groups['groups'] ), $form, $user_id );
+		return (bool) apply_filters( 'gravityforms_for_bp_user_groups_is_user_form_member', ! empty( $groups['groups'] ), $form, $user_id );
 	}
 
 	/**
@@ -260,8 +260,8 @@ final class GravityForms_Restrict_BP_User_Groups {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @uses GravityForms_Restrict_BP_User_Groups::get_form_meta()
-	 * @uses GravityForms_Restrict_BP_User_Groups::get_gf_translation()
+	 * @uses GravityForms_For_BP_User_Groups::get_form_meta()
+	 * @uses GravityForms_For_BP_User_Groups::get_gf_translation()
 	 * 
 	 * @param array $settings Form settings sections with their fields
 	 * @param array $form Form object
@@ -277,30 +277,30 @@ final class GravityForms_Restrict_BP_User_Groups {
 		ob_start(); ?>
 
 		<tr>
-			<th><?php _e( 'Restrict user groups', 'gravityforms-restrict-bp-user-groups' ); ?></th>
+			<th><?php _e( 'BP user groups', 'gravityforms-for-bp-user-groups' ); ?></th>
 			<td>
-				<input type="checkbox" name="restrict-bp-user-groups" id="gform_restrict_bp_user_groups" value="1" <?php checked( $checked ); ?> onclick="ToggleRestrictUserGroups();" />
-				<label for="gform_restrict_bp_user_groups"><?php _e( 'Restrict this form to the selected BuddyPress user groups', 'gravityforms-restrict-bp-user-groups' ); ?></label>
+				<input type="checkbox" name="for-bp-user-groups" id="gform_for_bp_user_groups" value="1" <?php checked( $checked ); ?> onclick="ToggleForUserGroups();" />
+				<label for="gform_for_bp_user_groups"><?php _e( 'Restrict this form to the selected BuddyPress user groups', 'gravityforms-for-bp-user-groups' ); ?></label>
 
 				<script type="text/javascript">
-					function ToggleRestrictUserGroups() {
-						if ( jQuery( 'input[name="restrict-bp-user-groups"]' ).is(':checked') ) {
-							ShowSettingRow( '#restrict_user_groups_setting' );
+					function ToggleForUserGroups() {
+						if ( jQuery( 'input[name="for-bp-user-groups"]' ).is(':checked') ) {
+							ShowSettingRow( '#for_user_groups_setting' );
 						} else {
-							HideSettingRow( '#restrict_user_groups_setting' );
+							HideSettingRow( '#for_user_groups_setting' );
 						}
 					}
 				</script>
 			</td>
 		</tr>
 
-		<tr id="restrict_user_groups_setting" class="child_setting_row" <?php echo $style; ?>>
+		<tr id="for_user_groups_setting" class="child_setting_row" <?php echo $style; ?>>
 			<td colspan="2" class="gf_sub_settings_cell">
 				<div class="gf_animate_sub_settings">
 					<table>
 
 						<?php // Provide hook for dynamic child settings ?>
-						<?php do_action( 'gravityforms_restrict_bp_user_groups_child_settings', $form ); ?>
+						<?php do_action( 'gravityforms_for_bp_user_groups_child_settings', $form ); ?>
 
 					</table>
 				</div><!-- .gf_animate_sub_settings -->
@@ -313,7 +313,7 @@ final class GravityForms_Restrict_BP_User_Groups {
 		$section = $this->get_gf_translation( 'Restrictions' );
 
 		// Append the field to the section and end the output buffer
-		$settings[ $section ][ 'restrict_bp_user_groups' ] = ob_get_clean();
+		$settings[ $section ][ 'for_bp_user_groups' ] = ob_get_clean();
 
 		return $settings;
 	}
@@ -323,14 +323,14 @@ final class GravityForms_Restrict_BP_User_Groups {
 	 *
 	 * @since 1.0.1
 	 *
-	 * @uses GravityForms_Restrict_BP_User_Groups::display_group_selection()
-	 * @uses GravityForms_Restrict_BP_User_Groups::get_form_user_groups()
+	 * @uses GravityForms_For_BP_User_Groups::display_group_selection()
+	 * @uses GravityForms_For_BP_User_Groups::get_form_user_groups()
 	 * @param array $form Form object
 	 */
 	public function select_user_groups_setting( $form ) { ?>
 
 		<tr>
-			<th><?php _e( 'Groups', 'gravityforms-restrict-bp-user-groups' ); ?></th>
+			<th><?php _e( 'Groups', 'gravityforms-for-bp-user-groups' ); ?></th>
 			<td><?php echo $this->display_group_selection( $this->get_form_user_groups( $form ) ); ?></td>
 		</tr>
 
@@ -369,7 +369,7 @@ final class GravityForms_Restrict_BP_User_Groups {
 				// Walk all groups
 				foreach ( $groups as $group ) : ?>
 
-					<li><label><input type="checkbox" name="restricted-user-groups[]" value="<?php echo $group->id; ?>" <?php checked( in_array( $group->id, $selected ) ); ?>> <?php echo $group->name; ?></label></li>
+					<li><label><input type="checkbox" name="selected-bp-user-groups[]" value="<?php echo $group->id; ?>" <?php checked( in_array( $group->id, $selected ) ); ?>> <?php echo $group->name; ?></label></li>
 
 				<?php endforeach;
 
@@ -382,7 +382,7 @@ final class GravityForms_Restrict_BP_User_Groups {
 		// Get and end output buffer
 		$html = ob_get_clean();
 
-		return apply_filters( 'gravityforms_restrict_bp_user_groups_display_group_selection', $html, $selected, $type );
+		return apply_filters( 'gravityforms_for_bp_user_groups_display_group_selection', $html, $selected, $type );
 	}
 
 	/**
@@ -396,10 +396,10 @@ final class GravityForms_Restrict_BP_User_Groups {
 	public function update_form_setting( $settings ) {
 
 		// Sanitize form from $_POST var
-		$settings[ $this->main_meta_key ] = isset( $_POST['restrict-bp-user-groups'] ) ? 1 : 0;
+		$settings[ $this->main_meta_key ] = isset( $_POST['for-bp-user-groups'] ) ? 1 : 0;
 
 		// Sanitize selected user groups
-		$settings[ $this->groups_meta_key ] = isset( $_POST['restricted-user-groups'] ) ? array_map( 'intval', $_POST['restricted-user-groups'] ) : array();
+		$settings[ $this->groups_meta_key ] = isset( $_POST['selected-bp-user-groups'] ) ? array_map( 'intval', $_POST['selected-bp-user-groups'] ) : array();
 
 		return $settings;
 	}
@@ -410,18 +410,18 @@ final class GravityForms_Restrict_BP_User_Groups {
  *
  * @since 1.0.0
  * 
- * @return GravityForms_Restrict_BP_User_Groups
+ * @return GravityForms_For_BP_User_Groups
  */
-function gravityforms_restrict_bp_user_groups() {
+function gravityforms_for_bp_user_groups() {
 
 	// Bail if either GF or BP user groups is not active
 	if ( ! class_exists( 'GFForms' ) || ! function_exists( 'buddypress' ) || ! bp_is_active( 'groups' ) )
 		return;
 
-	return GravityForms_Restrict_BP_User_Groups::instance();
+	return GravityForms_For_BP_User_Groups::instance();
 }
 
 // Initiate on plugins_loaded
-add_action( 'plugins_loaded', 'gravityforms_restrict_bp_user_groups' );
+add_action( 'plugins_loaded', 'gravityforms_for_bp_user_groups' );
 
 endif; // class_exists
