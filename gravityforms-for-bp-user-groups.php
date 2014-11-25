@@ -189,29 +189,45 @@ final class GravityForms_For_BP_User_Groups {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @uses get_current_user_id()
+	 * @uses GravityForms_For_BP_User_Groups::is_user_group_member()
 	 * @uses GravityForms_For_BP_User_Groups::get_form_user_groups()
+	 * 
+	 * @param array|int $form Form object or form ID
+	 * @param int $user_id Optional. User ID. Defaults to current user ID
+	 * @return bool User is member of the form's groups
+	 */
+	public function is_user_form_member( $form, $user_id = 0 ) {
+		return $this->is_user_group_member( $this->get_form_user_groups( $form ), $user_id );
+	}
+
+	/**
+	 * Return whether the given user is member of any of the given groups
+	 * 
+	 * @since 1.1.0
+	 *
+	 * @uses get_current_user_id()
 	 * @uses BP_Groups_Hierarchy::has_children()
 	 * @uses groups_get_groups()
 	 * @uses apply_filters() Calls 'gravityforms_for_bp_user_groups_is_user_form_member'
 	 * 
-	 * @param array|int $form Form object or form ID
+	 * @param array $group_ids Form object or form ID
 	 * @param int $user_id Optional. User ID. Defaults to current user ID
-	 * @return bool The user can view the form
+	 * @return bool User is member of at least one of the group
 	 */
-	public function is_user_form_member( $form, $user_id = 0 ) {
-		global $wpdb;
+	public function is_user_group_member( $group_ids, $user_id = 0 ) {
+
+		// Bail when no group ids are provided
+		if ( empty( $group_ids ) ) {
+			return false;
+		}
 
 		// Default to current user
 		if ( empty( $user_id ) ) {
 			$user_id = get_current_user_id();
 		}
 
-		// Get the form's assigned user groups
-		$group_ids = $this->get_form_user_groups( $form );
-
 		// Account for group hierarchy
-		if ( ! empty( $group_ids ) && $this->bp_group_hierarchy ) {
+		if ( $this->bp_group_hierarchy ) {
 
 			// Walk hierarchy
 			$hierarchy = new ArrayIterator( $group_ids );
@@ -237,7 +253,7 @@ final class GravityForms_For_BP_User_Groups {
 			'populate_extras' => false,
 		) );
 
-		return (bool) apply_filters( 'gravityforms_for_bp_user_groups_is_user_form_member', ! empty( $groups['groups'] ), $form, $user_id );
+		return (bool) apply_filters( 'gravityforms_for_bp_user_groups_is_user_form_member', ! empty( $groups['groups'] ), $group_ids, $user_id );
 	}
 
 	/**
