@@ -164,7 +164,7 @@ final class GravityForms_For_BP_User_Groups {
 				if ( ! isset( $form['requireLogin'] ) || ! $form['requireLogin'] ) {
 
 					// Display not-loggedin message
-					$content = '<p>' . ( empty( $form['requireLoginMessage'] ) ? $this->get_gf_translation( 'Sorry. You must be logged in to view this form.' ) : GFCommon::gform_do_shortcode( $form['requireLoginMessage'] ) ) . '</p>';
+					$content = '<p>' . ( empty( $form['requireLoginMessage'] ) ? $this->translate( 'Sorry. You must be logged in to view this form.' ) : GFCommon::gform_do_shortcode( $form['requireLoginMessage'] ) ) . '</p>';
 				}
 
 			// User is not member of this form's user groups. Hide the form
@@ -281,10 +281,11 @@ final class GravityForms_For_BP_User_Groups {
 	 *
 	 * @uses call_user_func_array() To call __() indirectly
 	 * @param string $string String to be translated
+	 * @param string $context Optional. Translation context. Defaults to `gravityforms`
 	 * @return string Translation
 	 */
-	public function get_gf_translation( $string ) {
-		return call_user_func_array( '__', array( $string, 'gravityforms' ) );
+	public function translate( $string, $context = 'gravityforms' ) {
+		return call_user_func_array( '__', array( $string, $context ) );
 	}
 
 	/** Admin Settings **************************************************/
@@ -295,7 +296,7 @@ final class GravityForms_For_BP_User_Groups {
 	 * @since 1.0.0
 	 *
 	 * @uses GravityForms_For_BP_User_Groups::get_form_meta()
-	 * @uses GravityForms_For_BP_User_Groups::get_gf_translation()
+	 * @uses GravityForms_For_BP_User_Groups::translate()
 	 * 
 	 * @param array $settings Form settings sections with their fields
 	 * @param array $form Form object
@@ -344,7 +345,7 @@ final class GravityForms_For_BP_User_Groups {
 		<?php
 
 		// Settings sections are stored by their translatable title
-		$section = $this->get_gf_translation( 'Restrictions' );
+		$section = $this->translate( 'Restrictions' );
 
 		// Append the field to the section and end the output buffer
 		$settings[ $section ][ 'for_bp_user_groups' ] = ob_get_clean();
@@ -389,6 +390,28 @@ final class GravityForms_For_BP_User_Groups {
 		</tr>
 
 		<?php
+	}
+
+	/**
+	 * Run the update form setting logic
+	 *
+	 * @since 1.0.0
+	 * 
+	 * @param array $settings Form settings
+	 * @return array Form settings
+	 */
+	public function update_form_setting( $settings ) {
+
+		// Sanitize form from $_POST var
+		$settings[ $this->main_meta_key ] = isset( $_POST['for-bp-user-groups'] ) ? 1 : 0;
+
+		// Sanitize selected user groups
+		$settings[ $this->groups_meta_key ] = isset( $_POST['selected-bp-user-groups'] ) ? array_map( 'intval', $_POST['selected-bp-user-groups'] ) : array();
+
+		// Sanitize selected user groups
+		$settings[ $this->feedback_meta_key ] = isset( $_POST['for-bp-user-groups-hide-feedback'] ) ? 1 : 0;
+
+		return $settings;
 	}
 
 	/**
@@ -437,28 +460,6 @@ final class GravityForms_For_BP_User_Groups {
 		$html = ob_get_clean();
 
 		return apply_filters( 'gravityforms_for_bp_user_groups_display_group_selection', $html, $selected, $type );
-	}
-
-	/**
-	 * Run the update form setting logic
-	 *
-	 * @since 1.0.0
-	 * 
-	 * @param array $settings Form settings
-	 * @return array Form settings
-	 */
-	public function update_form_setting( $settings ) {
-
-		// Sanitize form from $_POST var
-		$settings[ $this->main_meta_key ] = isset( $_POST['for-bp-user-groups'] ) ? 1 : 0;
-
-		// Sanitize selected user groups
-		$settings[ $this->groups_meta_key ] = isset( $_POST['selected-bp-user-groups'] ) ? array_map( 'intval', $_POST['selected-bp-user-groups'] ) : array();
-
-		// Sanitize selected user groups
-		$settings[ $this->feedback_meta_key ] = isset( $_POST['for-bp-user-groups-hide-feedback'] ) ? 1 : 0;
-
-		return $settings;
 	}
 }
 
