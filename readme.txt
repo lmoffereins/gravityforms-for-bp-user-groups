@@ -1,4 +1,4 @@
-=== GF Restrict BP User Groups ===
+=== GF For BP User Groups ===
 Contributors: Offereins
 Tags: Gravity Forms, restrict, BuddyPress, user, groups
 Requires at least: 4.0, GF 1.8.7
