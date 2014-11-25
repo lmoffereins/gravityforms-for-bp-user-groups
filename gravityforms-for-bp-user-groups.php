@@ -46,6 +46,15 @@ final class GravityForms_For_BP_User_Groups {
 	 */
 	private $groups_meta_key = 'selectedBPUserGroups';
 
+
+	/**
+	 * The plugin setting's feedback meta key
+	 *
+	 * @since 1.1.0
+	 * @var string
+	 */
+	private $feedback_meta_key = 'forBPUserGroupsHideFeedback';
+
 	/**
 	 * Setup and return the singleton pattern
 	 *
@@ -100,6 +109,7 @@ final class GravityForms_For_BP_User_Groups {
 		// Form settings
 		add_filter( 'gform_form_settings',                            array( $this, 'register_form_setting'      ), 20, 2 );
 		add_filter( 'gform_pre_form_settings_save',                   array( $this, 'update_form_setting'        )        );
+		add_action( 'gravityforms_for_bp_user_groups_child_settings', array( $this, 'hide_feedback_setting'      )        );
 		add_action( 'gravityforms_for_bp_user_groups_child_settings', array( $this, 'select_user_groups_setting' )        );
 	}
 
@@ -135,11 +145,11 @@ final class GravityForms_For_BP_User_Groups {
 	 * @uses get_current_user_id()
 	 * @uses apply_filters() Calls 'gf_for_bp_user_groups_handle_form_display'
 	 * 
-	 * @param string $form_string The form response HTML
+	 * @param string $content The form response HTML
 	 * @param array $form Form meta data
 	 * @return string Form HTML
 	 */
-	public function handle_form_display( $form_string, $form ) {
+	public function handle_form_display( $content, $form ) {
 
 		// Get the current user
 		$user_id = get_current_user_id();
@@ -154,16 +164,24 @@ final class GravityForms_For_BP_User_Groups {
 				if ( ! isset( $form['requireLogin'] ) || ! $form['requireLogin'] ) {
 
 					// Display not-loggedin message
-					$form_string = '<p>' . ( empty( $form['requireLoginMessage'] ) ? $this->get_gf_translation( 'Sorry. You must be logged in to view this form.' ) : GFCommon::gform_do_shortcode( $form['requireLoginMessage'] ) ) . '</p>';
+					$content = '<p>' . ( empty( $form['requireLoginMessage'] ) ? $this->get_gf_translation( 'Sorry. You must be logged in to view this form.' ) : GFCommon::gform_do_shortcode( $form['requireLoginMessage'] ) ) . '</p>';
 				}
 
 			// User is not member of this form's user groups. Hide the form
 			} elseif ( ! $this->is_user_form_member( $form['id'], $user_id ) ) {
-				$form_string = '<p>' . __( 'Sorry. You are not allowed to view this form.', 'gravityforms-for-bp-user-groups' ) . '</p>';
+
+				// Display feedback message
+				if ( ! $this->get_form_meta( $form, $this->feedback_meta_key ) ) {
+					$content = '<p>' . __( 'Sorry. You are not allowed to view this form.', 'gravityforms-for-bp-user-groups' ) . '</p>';
+
+				// Completely hide the repsonse
+				} else {
+					$content = '';
+				}
 			}
 		}
 
-		return $form_string;
+		return $content;
 	}
 
 	/**
@@ -354,6 +372,26 @@ final class GravityForms_For_BP_User_Groups {
 	}
 
 	/**
+	 * Display the setting field to remove the feedback message
+	 *
+	 * @since 1.1.0
+	 * 
+	 * @param array $form Form object
+	 */
+	public function hide_feedback_setting( $form ) { ?>
+
+		<tr>
+			<th><?php _e( 'Hide feedback', 'gravityforms-for-bp-user-groups' ); ?></th>
+			<td>
+				<input type="checkbox" name="for-bp-user-groups-hide-feedback" id="gform_for_bp_user_groups_hide_feedback" value="1" <?php checked( $this->get_form_meta( $form, $this->feedback_meta_key ) ); ?> />
+				<label for="gform_for_bp_user_groups_hide_feedback"><?php _e( "Don't show any feedback message when hiding the form", 'gravityforms-for-bp-user-groups' ); ?></label>
+			</td>
+		</tr>
+
+		<?php
+	}
+
+	/**
 	 * Return the user group selection HTML
 	 *
 	 * @since 1.0.0
@@ -416,6 +454,9 @@ final class GravityForms_For_BP_User_Groups {
 
 		// Sanitize selected user groups
 		$settings[ $this->groups_meta_key ] = isset( $_POST['selected-bp-user-groups'] ) ? array_map( 'intval', $_POST['selected-bp-user-groups'] ) : array();
+
+		// Sanitize selected user groups
+		$settings[ $this->feedback_meta_key ] = isset( $_POST['for-bp-user-groups-hide-feedback'] ) ? 1 : 0;
 
 		return $settings;
 	}
