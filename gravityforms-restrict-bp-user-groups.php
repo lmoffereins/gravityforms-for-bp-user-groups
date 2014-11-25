@@ -106,6 +106,28 @@ final class GravityForms_Restrict_BP_User_Groups {
 	/** Public methods **************************************************/
 
 	/**
+	 * Return the given form's meta value
+	 *
+	 * @since 1.0.0
+	 * 
+	 * @param array|int $form Form object or form ID
+	 * @param string $meta_key Form meta key
+	 * @return mixed Form setting's value or NULL when not found
+	 */
+	public function get_form_meta( $form, $meta_key ) {
+
+		// Get form metadata
+		if ( ! is_array( $form ) && is_numeric( $form ) ) {
+			$form = GFFormsModel::get_form_meta( (int) $form );
+		} elseif ( ! is_array( $form ) ) {
+			return null;
+		}
+
+		// Get form setting
+		return isset( $form[ $meta_key ] ) ? $form[ $meta_key ] : null;
+	}
+
+	/**
 	 * Do not display the form when the current user is not a member of associated user groups
 	 *
 	 * @since 1.0.0
@@ -115,7 +137,7 @@ final class GravityForms_Restrict_BP_User_Groups {
 	 * 
 	 * @param string $form_string The form response HTML
 	 * @param array $form Form meta data
-	 * @return string Form meta data or null when not to display
+	 * @return string Form HTML
 	 */
 	public function handle_form_display( $form_string, $form ) {
 
@@ -123,7 +145,7 @@ final class GravityForms_Restrict_BP_User_Groups {
 		$user_id = get_current_user_id();
 
 		// Form is marked to restrict user groups
-		if ( ! empty( $form ) && $this->get_form_setting( $form, $this->main_meta_key ) && 0 < count( $this->get_form_user_groups( $form ) ) ) {
+		if ( ! empty( $form ) && $this->get_form_meta( $form, $this->main_meta_key ) && 0 < count( $this->get_form_user_groups( $form ) ) ) {
 
 			// User is not logged in
 			if ( empty( $user_id ) ) {
@@ -145,28 +167,6 @@ final class GravityForms_Restrict_BP_User_Groups {
 	}
 
 	/**
-	 * Return the given form's meta value
-	 *
-	 * @since 1.0.0
-	 * 
-	 * @param array|int $form Form object or form ID
-	 * @param string $meta_key Form meta key
-	 * @return mixed Form setting's value or NULL when not found
-	 */
-	public function get_form_setting( $form, $meta_key ) {
-
-		// Get form metadata
-		if ( ! is_array( $form ) && is_numeric( $form ) ) {
-			$form = RGFormsModel::get_form_meta( (int) $form );
-		} elseif ( ! is_array( $form ) ) {
-			return null;
-		}
-
-		// Get form setting
-		return isset( $form[ $meta_key ] ) ? $form[ $meta_key ] : null;
-	}
-
-	/**
 	 * Shortcut to return the selected form's user groups
 	 *
 	 * @since 1.0.0
@@ -175,7 +175,7 @@ final class GravityForms_Restrict_BP_User_Groups {
 	 * @return array Form's user groups
 	 */
 	public function get_form_user_groups( $form ) {
-		$groups = $this->get_form_setting( $form, $this->groups_meta_key );
+		$groups = $this->get_form_meta( $form, $this->groups_meta_key );
 
 		// Default to empty array
 		if ( empty( $groups ) )
@@ -260,7 +260,7 @@ final class GravityForms_Restrict_BP_User_Groups {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @uses GravityForms_Restrict_BP_User_Groups::get_form_setting()
+	 * @uses GravityForms_Restrict_BP_User_Groups::get_form_meta()
 	 * @uses GravityForms_Restrict_BP_User_Groups::get_gf_translation()
 	 * 
 	 * @param array $settings Form settings sections with their fields
@@ -270,7 +270,7 @@ final class GravityForms_Restrict_BP_User_Groups {
 	public function register_form_setting( $settings, $form ) {
 
 		// Define local variable(s)
-		$checked = $this->get_form_setting( $form, $this->main_meta_key );
+		$checked = $this->get_form_meta( $form, $this->main_meta_key );
 		$style   = ! $checked ? 'style="display:none;"' : '';
 
 		// Start output buffer and setup our settings fields markup
