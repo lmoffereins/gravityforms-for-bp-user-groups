@@ -160,22 +160,22 @@ final class GravityForms_For_BP_User_Groups {
 		// Form is marked for selected user groups
 		if ( ! empty( $form ) && $this->get_form_meta( $form, $this->main_meta_key ) && 0 < count( $this->get_form_user_groups( $form ) ) ) {
 
-			// User is not logged in
-			if ( empty( $user_id ) ) {
-
-				// Hide the form when login is not explicitly required
-				if ( ! isset( $form['requireLogin'] ) || ! $form['requireLogin'] ) {
-
-					// Display not-loggedin message
-					$content = '<p>' . ( empty( $form['requireLoginMessage'] ) ? $this->translate( 'Sorry. You must be logged in to view this form.' ) : GFCommon::gform_do_shortcode( $form['requireLoginMessage'] ) ) . '</p>';
-				}
-
 			// User is not member of this form's user groups. Hide the form
-			} elseif ( ! $this->is_user_form_member( $form['id'], $user_id ) ) {
+			if ( ! $this->is_user_form_member( $form['id'], $user_id ) ) {
 
 				// Display feedback message
 				if ( ! $this->get_form_meta( $form, $this->feedback_meta_key ) ) {
-					$content = '<p>' . __( 'Sorry. You are not allowed to view this form.', 'gravityforms-for-bp-user-groups' ) . '</p>';
+
+					// User is not logged in and login is not explictly required
+					if ( empty( $user_id ) && ! $form['requireLogin'] ) {
+
+						// Display not-loggedin message
+						$content = '<p>' . ( empty( $form['requireLoginMessage'] ) ? $this->translate( 'Sorry. You must be logged in to view this form.' ) : GFCommon::gform_do_shortcode( $form['requireLoginMessage'] ) ) . '</p>';
+
+					// Display not-allowed-to-view message
+					} else {
+						$content = '<p>' . __( 'Sorry. You are not allowed to view this form.', 'gravityforms-for-bp-user-groups' ) . '</p>';
+					}
 
 				// Completely hide the repsonse
 				} else {
