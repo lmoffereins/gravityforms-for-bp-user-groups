@@ -146,7 +146,6 @@ final class GravityForms_For_BP_User_Groups {
 	 * @since 1.0.0
 	 *
 	 * @uses get_current_user_id()
-	 * @uses apply_filters() Calls 'gf_for_bp_user_groups_handle_form_display'
 	 * 
 	 * @param string $content The form response HTML
 	 * @param array $form Form meta data
@@ -154,33 +153,33 @@ final class GravityForms_For_BP_User_Groups {
 	 */
 	public function handle_form_display( $content, $form ) {
 
+		// Bail when form or content is empty
+		if ( empty( $content ) || empty( $form ) )
+			return $content;
+
 		// Get the current user
 		$user_id = get_current_user_id();
 
-		// Form is marked for selected user groups
-		if ( ! empty( $form ) && $this->get_form_meta( $form, $this->main_meta_key ) && 0 < count( $this->get_form_user_groups( $form ) ) ) {
+		// Form is marked for selected user groups and user is not member of this form's user groups, so hide the form
+		if ( $this->get_form_meta( $form, $this->main_meta_key ) && ! $this->is_user_form_member( $form, $user_id ) ) {
 
-			// User is not member of this form's user groups. Hide the form
-			if ( ! $this->is_user_form_member( $form['id'], $user_id ) ) {
+			// Display feedback message
+			if ( ! $this->get_form_meta( $form, $this->feedback_meta_key ) ) {
 
-				// Display feedback message
-				if ( ! $this->get_form_meta( $form, $this->feedback_meta_key ) ) {
+				// User is not logged in and login is not explictly required
+				if ( empty( $user_id ) && ! $form['requireLogin'] ) {
 
-					// User is not logged in and login is not explictly required
-					if ( empty( $user_id ) && ! $form['requireLogin'] ) {
+					// Display not-loggedin message
+					$content = '<p>' . ( empty( $form['requireLoginMessage'] ) ? $this->translate( 'Sorry. You must be logged in to view this form.' ) : GFCommon::gform_do_shortcode( $form['requireLoginMessage'] ) ) . '</p>';
 
-						// Display not-loggedin message
-						$content = '<p>' . ( empty( $form['requireLoginMessage'] ) ? $this->translate( 'Sorry. You must be logged in to view this form.' ) : GFCommon::gform_do_shortcode( $form['requireLoginMessage'] ) ) . '</p>';
-
-					// Display not-allowed-to-view message
-					} else {
-						$content = '<p>' . __( 'Sorry. You are not allowed to view this form.', 'gravityforms-for-bp-user-groups' ) . '</p>';
-					}
-
-				// Completely hide the repsonse
+				// Display not-allowed-to-view message
 				} else {
-					$content = '';
+					$content = '<p>' . __( 'Sorry. You are not allowed to view this form.', 'gravityforms-for-bp-user-groups' ) . '</p>';
 				}
+
+			// Completely hide the repsonse
+			} else {
+				$content = '';
 			}
 		}
 
@@ -245,6 +244,9 @@ final class GravityForms_For_BP_User_Groups {
 		// Default to current user
 		if ( empty( $user_id ) ) {
 			$user_id = get_current_user_id();
+			if ( empty( $user_id ) ) {
+				return false;
+			}
 		}
 
 		// Account for group hierarchy
